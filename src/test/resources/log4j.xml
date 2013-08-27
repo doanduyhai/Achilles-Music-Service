@@ -20,7 +20,9 @@
 		<level value="DEBUG" />
 	</logger>
 	
-	
+	<logger name="info.archinnov.achilles.embedded.AbstractEmbeddedServer">
+		<level value="INFO" />
+	</logger>	
 	<logger name="info.archinnov.achilles">
 		<level value="WARN" />
 	</logger>	

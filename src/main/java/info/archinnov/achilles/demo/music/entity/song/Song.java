@@ -37,7 +37,7 @@ public class Song {
     private Set<String> albums;
 
     @Column
-    private Counter buyCount;
+    private Counter ratingCount;
 
     public Song() {
     }
@@ -114,12 +114,11 @@ public class Song {
         this.albums = albums;
     }
 
-    public Counter getBuyCount() {
-        return buyCount;
+    public Counter getRatingCount() {
+        return ratingCount;
     }
 
-    public void setBuyCount(Counter buyCount) {
-        this.buyCount = buyCount;
+    public void setRatingCount(Counter ratingCount) {
+        this.ratingCount = ratingCount;
     }
-
 }

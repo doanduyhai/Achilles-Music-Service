@@ -11,7 +11,7 @@
 	<properties>
 		<java-version>1.6</java-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<achilles.version>2.0.4-SNAPSHOT</achilles.version>
+		<achilles.version>2.0.4</achilles.version>
 		<spring.version>3.2.0.RELEASE</spring.version>
 		
 	 	<fest.assert.version>2.0M8</fest.assert.version>
@@ -75,19 +75,6 @@
 		</dependency>
 		
 		<!-- TEST -->
-		<dependency>
-			<groupId>info.archinnov</groupId>
-			<artifactId>achilles-core</artifactId>
-			<classifier>test</classifier>	
-			<version>${achilles.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>info.archinnov</groupId>
-			<artifactId>achilles-cql</artifactId>
-			<classifier>test</classifier>	
-			<version>${achilles.version}</version>
-		</dependency>
-		
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>

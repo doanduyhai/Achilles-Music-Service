@@ -2,10 +2,12 @@ package info.archinnov.achilles.demo.music.service;
 
 import static info.archinnov.achilles.demo.music.constants.MusicStyle.*;
 import static org.fest.assertions.api.Assertions.assertThat;
+import info.archinnov.achilles.demo.music.constants.Rating;
 import info.archinnov.achilles.demo.music.constants.MusicStyle;
 import info.archinnov.achilles.demo.music.entity.song.Album;
 import info.archinnov.achilles.demo.music.entity.song.Song;
 import info.archinnov.achilles.demo.music.entity.user.Artist;
+import info.archinnov.achilles.demo.music.model.SongRating;
 import info.archinnov.achilles.entity.manager.CQLEntityManager;
 import info.archinnov.achilles.junit.AchillesCQLResource;
 import java.util.Arrays;
@@ -28,7 +30,7 @@ public class SongServiceTest {
 
     @Rule
     public AchillesCQLResource resource = new AchillesCQLResource("info.archinnov.achilles.demo.music.entity",
-            "Album", "Song", "SongIndex");
+            "Album", "Song", "SongIndex", "achilles_counter_table", "RatingByDate", "RatingByGrade");
 
     @InjectMocks
     private SongService service;
@@ -183,4 +185,91 @@ public class SongServiceTest {
         assertThat(foundSongs).hasSize(1);
         assertThat(foundSongs.get(0).getTitle()).isEqualTo(song2.getTitle());
     }
+
+    @Test
+    public void should_rate_a_song() throws Exception
+    {
+        Artist johnLennon = new Artist(null, "John", "LENNON", "John Lennon from the Beattles",
+                Sets.newHashSet(POP),
+                Sets.newHashSet("The Beattles"), 1960, "");
+        Song yesterday = new Song(null, "Yesterday", johnLennon, 1965, POP, 155,
+                Sets.newHashSet("Help!"));
+        UUID songId = service.createSong(yesterday);
+
+        service.rateSong(songId, new SongRating(Rating.B, "This song is really cool!", "johndoe"));
+
+        Row row = session.execute(
+                "SELECT counter_value FROM achilles_counter_table WHERE fqcn ='" + Song.class.getCanonicalName()
+                        + "' AND primary_key='\"" + songId.toString() + "\"' AND property_name='ratingCount'").one();
+
+        assertThat(row).isNotNull();
+        assertThat(row.getLong("counter_value")).isEqualTo(1L);
+    }
+
+    @Test
+    public void should_list_ratings_by_descending_date() throws Exception
+    {
+        Artist johnLennon = new Artist(null, "John", "LENNON", "John Lennon from the Beattles",
+                Sets.newHashSet(POP),
+                Sets.newHashSet("The Beattles"), 1960, "");
+        Song yesterday = new Song(null, "Yesterday", johnLennon, 1965, POP, 155,
+                Sets.newHashSet("Help!"));
+        UUID songId = service.createSong(yesterday);
+
+        service.rateSong(songId, new SongRating(Rating.B, "This song is really cool!", "johndoe"));
+        Thread.sleep(1);
+        service.rateSong(songId, new SongRating(Rating.F, "This song is awfull, so cheesy!", "helensue"));
+        Thread.sleep(1);
+        service.rateSong(songId, new SongRating(Rating.A, "Awesome, this is a must-have!", "richardsmith"));
+
+        List<SongRating> ratings = service.getRatingByDate(songId, true);
+
+        assertThat(ratings).hasSize(3);
+
+        assertThat(ratings.get(0).getUserLogin()).isEqualTo("richardsmith");
+        assertThat(ratings.get(0).getGrade()).isEqualTo(Rating.A);
+        assertThat(ratings.get(0).getComment()).isEqualTo("Awesome, this is a must-have!");
+
+        assertThat(ratings.get(1).getUserLogin()).isEqualTo("helensue");
+        assertThat(ratings.get(1).getGrade()).isEqualTo(Rating.F);
+        assertThat(ratings.get(1).getComment()).isEqualTo("This song is awfull, so cheesy!");
+
+        assertThat(ratings.get(2).getUserLogin()).isEqualTo("johndoe");
+        assertThat(ratings.get(2).getGrade()).isEqualTo(Rating.B);
+        assertThat(ratings.get(2).getComment()).isEqualTo("This song is really cool!");
+    }
+
+    @Test
+    public void should_list_ratings_by_descending_rate() throws Exception
+    {
+        Artist johnLennon = new Artist(null, "John", "LENNON", "John Lennon from the Beattles",
+                Sets.newHashSet(POP),
+                Sets.newHashSet("The Beattles"), 1960, "");
+        Song yesterday = new Song(null, "Yesterday", johnLennon, 1965, POP, 155,
+                Sets.newHashSet("Help!"));
+        UUID songId = service.createSong(yesterday);
+
+        service.rateSong(songId, new SongRating(Rating.B, "This song is really cool!", "johndoe"));
+        Thread.sleep(1);
+        service.rateSong(songId, new SongRating(Rating.F, "This song is awfull, so cheesy!", "helensue"));
+        Thread.sleep(1);
+        service.rateSong(songId, new SongRating(Rating.A, "Awesome, this is a must-have!", "richardsmith"));
+
+        List<SongRating> ratings = service.getRatingByRate(songId, true);
+
+        assertThat(ratings).hasSize(3);
+
+        assertThat(ratings.get(0).getUserLogin()).isEqualTo("richardsmith");
+        assertThat(ratings.get(0).getGrade()).isEqualTo(Rating.A);
+        assertThat(ratings.get(0).getComment()).isEqualTo("Awesome, this is a must-have!");
+
+        assertThat(ratings.get(1).getUserLogin()).isEqualTo("helensue");
+        assertThat(ratings.get(1).getGrade()).isEqualTo(Rating.F);
+        assertThat(ratings.get(1).getComment()).isEqualTo("This song is awfull, so cheesy!");
+
+        assertThat(ratings.get(2).getUserLogin()).isEqualTo("johndoe");
+        assertThat(ratings.get(2).getGrade()).isEqualTo(Rating.B);
+        assertThat(ratings.get(2).getComment()).isEqualTo("This song is really cool!");
+    }
+
 }
